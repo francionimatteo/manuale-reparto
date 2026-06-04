@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manuale Percorsi Reparto</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg:           #f7f7f5;
+    --sidebar-bg:   #1a1a1a;
+    --sidebar-w:    268px;
+    --text:         #1a1a1a;
+    --text-muted:   #888;
+    --border:       #e4e4e0;
+    --accent-admin: #2563a8;
+    --accent-med:   #2e7d32;
+    --accent-cross: #6b3fa0;
+    --tag-admin-bg: #dbeafe;
+    --tag-admin-fg: #1e40af;
+    --tag-med-bg:   #dcfce7;
+    --tag-med-fg:   #15803d;
+    --tag-cross-bg: #ede9fe;
+    --tag-cross-fg: #6d28d9;
+    --active-line:  #4a9eff;
+    --sidebar-text: #c8c8c4;
+    --sidebar-muted:#666;
+    --sidebar-hover:#2a2a2a;
+    --sidebar-active:#242424;
+    --placeholder-bg:#f0efec;
+    --note-bg:      #fffbeb;
+    --note-border:  #f59e0b;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ── LAYOUT ─────────────────────────────────────────── */
+  #app {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── SIDEBAR ─────────────────────────────────────────── */
+  #sidebar {
+    width: var(--sidebar-w);
+    min-width: var(--sidebar-w);
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-right: 1px solid #2a2a2a;
+  }
+
+  #sidebar-top {
+    padding: 20px 16px 14px;
+    border-bottom: 1px solid #2a2a2a;
+    flex-shrink: 0;
+  }
+
+  #sidebar-top .logo {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 10px;
+  }
+
+  #sidebar-top .logo-icon {
+    width: 28px; height: 28px;
+    background: #2563a8;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; color: white; flex-shrink: 0;
+  }
+
+  #sidebar-top .logo-text {
+    font-size: 12px;
+    font-weight: 500;
+    color: #e8e8e4;
+    line-height: 1.3;
+  }
+
+  #sidebar-top .logo-sub {
+    font-size: 10px;
+    color: var(--sidebar-muted);
+    font-family: 'IBM Plex Mono', monospace;
+    margin-top: 1px;
+  }
+
+  #search-wrap {
+    position: relative;
+  }
+
+  #search-wrap svg {
+    position: absolute;
+    left: 9px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--sidebar-muted);
+    pointer-events: none;
+  }
+
+  #search {
+    width: 100%;
+    background: #252525;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 6px 8px 6px 30px;
+    font-size: 12px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: var(--sidebar-text);
+    outline: none;
+    transition: border-color .15s;
+  }
+
+  #search::placeholder { color: var(--sidebar-muted); }
+  #search:focus { border-color: #444; }
+
+  #sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0 16px;
+    scrollbar-width: thin;
+    scrollbar-color: #333 transparent;
+  }
+
+  #sidebar-nav::-webkit-scrollbar { width: 4px; }
+  #sidebar-nav::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+  .sec-group { margin-bottom: 1px; }
+
+  .sec-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px 7px 14px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--sidebar-muted);
+    font-size: 11px;
+    font-weight: 500;
+    font-family: 'IBM Plex Sans', sans-serif;
+    text-align: left;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    transition: background .1s, color .1s;
+  }
+
+  .sec-btn:hover { background: var(--sidebar-hover); color: var(--sidebar-text); }
+
+  .sec-btn .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .sec-btn .sec-label { flex: 1; }
+
+  .sec-btn .arrow {
+    font-size: 9px;
+    transition: transform .2s;
+    color: #444;
+  }
+
+  .sec-btn.open .arrow { transform: rotate(90deg); color: #666; }
+
+  .task-list { display: none; }
+  .task-list.open { display: block; }
+
+  .task-btn {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 5px 12px 5px 32px;
+    background: none;
+    border: none;
+    border-left: 2px solid transparent;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: #777;
+    text-align: left;
+    line-height: 1.4;
+    transition: background .1s, color .1s, border-color .1s;
+  }
+
+  .task-btn:hover {
+    background: var(--sidebar-hover);
+    color: var(--sidebar-text);
+  }
+
+  .task-btn.active {
+    background: var(--sidebar-active);
+    color: #e8e8e4;
+    border-left-color: var(--active-line);
+    padding-left: 30px;
+  }
+
+  .task-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: #444;
+    flex-shrink: 0;
+    margin-top: 1px;
+    min-width: 24px;
+  }
+
+  .task-btn.active .task-num { color: #888; }
+
+  #sidebar-footer {
+    padding: 10px 14px;
+    border-top: 1px solid #2a2a2a;
+    font-size: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: #444;
+    flex-shrink: 0;
+  }
+
+  /* ── MAIN ─────────────────────────────────────────────── */
+  #main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  #topbar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 28px;
+    height: 44px;
+    border-bottom: 1px solid var(--border);
+    background: #fff;
+    flex-shrink: 0;
+    font-size: 12px;
+    color: var(--text-muted);
+    flex-wrap: nowrap;
+    overflow: hidden;
+  }
+
+  #topbar .crumb { color: var(--text-muted); white-space: nowrap; }
+  #topbar .crumb.active { color: var(--text); font-weight: 500; }
+  #topbar .sep { color: #ccc; }
+
+  #topbar .home-btn {
+    background: none; border: none; cursor: pointer;
+    font-size: 12px; color: var(--text-muted);
+    font-family: 'IBM Plex Sans', sans-serif;
+    padding: 0;
+    display: flex; align-items: center; gap: 4px;
+    transition: color .15s;
+    white-space: nowrap;
+  }
+  #topbar .home-btn:hover { color: var(--text); }
+
+  #content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 36px 40px 60px;
+    scrollbar-width: thin;
+    scrollbar-color: #ddd transparent;
+  }
+
+  #content::-webkit-scrollbar { width: 4px; }
+  #content::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
+
+  /* ── HOME PAGE ─────────────────────────────────────────── */
+  .home-header { margin-bottom: 32px; }
+
+  .home-header h1 {
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -.02em;
+    margin-bottom: 6px;
+  }
+
+  .home-header p {
+    font-size: 14px;
+    color: var(--text-muted);
+    max-width: 540px;
+    line-height: 1.6;
+  }
+
+  .home-stats {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .stat-pill {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 12px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .stat-pill strong { color: var(--text); }
+
+  .home-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+  }
+
+  .home-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    cursor: pointer;
+    transition: border-color .15s, box-shadow .15s, transform .1s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .home-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .home-card:hover {
+    border-color: #ccc;
+    box-shadow: 0 4px 16px rgba(0,0,0,.06);
+    transform: translateY(-1px);
+  }
+
+  .home-card .card-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    letter-spacing: .05em;
+  }
+
+  .home-card .card-title {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
+    margin-bottom: 10px;
+  }
+
+  .home-card .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .home-card .card-count {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .ambito-tag {
+    font-size: 10px;
+    font-weight: 500;
+    padding: 2px 7px;
+    border-radius: 10px;
+    letter-spacing: .02em;
+  }
+
+  .tag-admin { background: var(--tag-admin-bg); color: var(--tag-admin-fg); }
+  .tag-med   { background: var(--tag-med-bg);   color: var(--tag-med-fg); }
+  .tag-cross { background: var(--tag-cross-bg); color: var(--tag-cross-fg); }
+
+  /* ── TASK PAGE ─────────────────────────────────────────── */
+  .task-page { max-width: 740px; }
+
+  .task-header {
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .task-header h2 {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -.02em;
+    margin-bottom: 10px;
+    line-height: 1.3;
+  }
+
+  .task-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  .meta-tag {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-radius: 20px;
+    letter-spacing: .02em;
+  }
+
+  .meta-sec {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .task-body h3 {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--text-muted);
+    margin: 28px 0 10px;
+  }
+
+  .task-body p {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #333;
+    margin-bottom: 14px;
+  }
+
+  .task-body ol {
+    padding-left: 20px;
+    margin-bottom: 16px;
+  }
+
+  .task-body ol li {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #333;
+    margin-bottom: 6px;
+    padding-left: 4px;
+  }
+
+  /* screenshot slot */
+  .screenshot-slot {
+    margin: 20px 0;
+    border: 1.5px dashed #d0d0cc;
+    border-radius: 8px;
+    background: var(--placeholder-bg);
+    padding: 32px 24px;
+    text-align: center;
+  }
+
+  .screenshot-slot .slot-icon {
+    font-size: 28px;
+    margin-bottom: 8px;
+    opacity: .4;
+  }
+
+  .screenshot-slot .slot-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .screenshot-slot img {
+    max-width: 100%;
+    border-radius: 6px;
+    display: block;
+    margin: 0 auto;
+  }
+
+  /* note box */
+  .note-box {
+    margin: 20px 0;
+    padding: 12px 16px;
+    background: var(--note-bg);
+    border-left: 3px solid var(--note-border);
+    border-radius: 0 6px 6px 0;
+    font-size: 13px;
+    color: #78350f;
+    line-height: 1.6;
+  }
+
+  .note-box strong { font-weight: 600; }
+
+  /* empty state */
+  .empty-state {
+    margin-top: 20px;
+    padding: 32px 24px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    text-align: center;
+  }
+
+  .empty-state .empty-icon { font-size: 32px; margin-bottom: 10px; opacity: .35; }
+
+  .empty-state p {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    max-width: 340px;
+    margin: 0 auto;
+  }
+
+  /* ── NO RESULTS ───────────────────────────────────────── */
+  .no-results {
+    padding: 20px 16px;
+    font-size: 11px;
+    color: #555;
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* ── HIGHLIGHT ─────────────────────────────────────────── */
+  mark {
+    background: #fef08a;
+    color: inherit;
+    border-radius: 2px;
+    padding: 0 1px;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div id="sidebar-top">
+      <div class="logo">
+        <div class="logo-icon">📋</div>
+        <div>
+          <div class="logo-text">Manuale percorsi<br>di reparto</div>
+          <div class="logo-sub">v1.0 — bozza</div>
+        </div>
+      </div>
+      <div id="search-wrap">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="search" type="text" placeholder="Cerca task…" autocomplete="off" oninput="handleSearch(this.value)">
+      </div>
+    </div>
+    <nav id="sidebar-nav" aria-label="Navigazione sezioni"></nav>
+    <div id="sidebar-footer">65 task · 9 sezioni</div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+    <div id="topbar">
+      <button class="home-btn" onclick="showHome()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Home
+      </button>
+      <span class="sep">›</span>
+      <span id="bc-section" class="crumb" style="display:none"></span>
+      <span id="bc-sep2" class="sep" style="display:none">›</span>
+      <span id="bc-task" class="crumb active"></span>
+    </div>
+    <div id="content"></div>
+  </div>
+</div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────
+const SECTIONS = [
+  {
+    id:1, label:"Accesso e ammissione al ricovero",
+    short:"Accesso e ammissione", ambito:"Amministrativo", color:"#2563a8",
+    tasks:[
+      "Inserimento in lista di ricovero",
+      "Programmazione visita prericovero",
+      "Esami di laboratorio prericovero",
+      "Esami strumentali prericovero",
+      "Certificazione INPS di inizio ricovero",
+      "Accettazione e registrazione anagrafica",
+      "Verifica tessera sanitaria / esenzioni",
+      "Apertura cartella clinica informatizzata",
+      "Ricovero da Pronto Soccorso / trasferimento",
+      "Ricovero programmato vs urgente",
+      "Raccolta consenso informato al ricovero",
+      "Assegnazione posto letto / reparto",
+      "Gestione letti in overbooking"
+    ]
+  },
+  {
+    id:2, label:"Valutazione clinica e diagnosi",
+    short:"Valutazione clinica", ambito:"Clinico", color:"#2e7d32",
+    tasks:[
+      "Anamnesi ed esame obiettivo",
+      "Monitoraggio parametri vitali",
+      "Prescrizione e refertazione esami laboratorio",
+      "Richiesta e refertazione diagnostica per immagini",
+      "ECG e diagnostica strumentale",
+      "Consulenze specialistiche",
+      "Codifica diagnosi (ICD-10 / DRG)",
+      "Identificazione diagnosi secondarie"
+    ]
+  },
+  {
+    id:3, label:"Gestione terapeutica e prescrizioni",
+    short:"Gestione terapeutica", ambito:"Clinico", color:"#2e7d32",
+    tasks:[
+      "Prescrizione farmacologica informatizzata",
+      "Riconciliazione terapeutica all'ingresso",
+      "Somministrazione e doppio controllo infermieristico",
+      "Gestione allergie e interazioni farmacologiche",
+      "Farmaci off-label / prontuario ospedaliero",
+      "Gestione emoderivati e plasma expanders",
+      "Dispositivi medici e presidi",
+      "Farmaci in urgenza / elezione"
+    ]
+  },
+  {
+    id:4, label:"Assistenza infermieristica e nursing",
+    short:"Assistenza infermieristica", ambito:"Clinico", color:"#2e7d32",
+    tasks:[
+      "Piano assistenziale individuale",
+      "Diario infermieristico",
+      "Rilevazione e registrazione parametri",
+      "Gestione accessi venosi e medicazioni",
+      "Valutazione score (MEWS, Braden, cadute)",
+      "Mobilizzazione e posizionamento",
+      "Passaggio consegne / handover",
+      "Tracciamento bilancio idrico"
+    ]
+  },
+  {
+    id:5, label:"Dimissione e continuità di cura",
+    short:"Dimissione", ambito:"Trasversale", color:"#6b3fa0",
+    tasks:[
+      "Pianificazione dimissione (discharge planning)",
+      "Lettera di dimissione / epicrisi",
+      "Riconciliazione terapeutica alla dimissione",
+      "Attivazione ADI / cure domiciliari",
+      "Trasferimento in RSA / riabilitazione",
+      "Prenotazione follow-up ambulatoriale",
+      "Compilazione SDO / DRG",
+      "Istruzioni al paziente / caregiver",
+      "Piani terapeutici farmacologici specialistici",
+      "Certificazione di esenzione",
+      "Certificazione INPS di fine ricovero"
+    ]
+  },
+  {
+    id:6, label:"Privacy, consensi e aspetti legali",
+    short:"Privacy e aspetti legali", ambito:"Amministrativo", color:"#2563a8",
+    tasks:[
+      "Consenso informato procedure invasive",
+      "Informativa privacy GDPR",
+      "Gestione paziente incapace / tutore",
+      "DAT / disposizioni anticipate di trattamento",
+      "Segnalazioni obbligatorie (malattie infettive)",
+      "Referto all'autorità giudiziaria",
+      "Accesso cartella da terzi / parenti",
+      "Riservatezza ricovero (codice bianco)"
+    ]
+  },
+  {
+    id:7, label:"Sicurezza del paziente ed eventi avversi",
+    short:"Sicurezza del paziente", ambito:"Trasversale", color:"#b45309",
+    tasks:[
+      "Segnalazione incident (near miss / evento avverso)",
+      "Sorveglianza infezioni ospedaliere (ICA)",
+      "Gestione cadute e lesioni da pressione",
+      "Errori di terapia e near-miss farmacologici",
+      "Checklist safe surgery / procedure invasive",
+      "Root Cause Analysis (RCA)",
+      "Identificazione corretta del paziente",
+      "Monitoraggio indicatori di qualità"
+    ]
+  },
+  {
+    id:8, label:"Gestione operativa e risorse",
+    short:"Gestione operativa", ambito:"Amministrativo", color:"#2563a8",
+    tasks:[
+      "Gestione turni e presenze",
+      "Manutenzione apparecchiature biomediche",
+      "Gestione magazzino e scorte",
+      "Codifica prestazioni / contabilità analitica",
+      "Formazione e aggiornamento del personale",
+      "Reportistica direzionale e KPI",
+      "Gestione spazi e logistica reparto",
+      "Integrazione con sistemi informativi (LIS, RIS, HIS)"
+    ]
+  },
+  {
+    id:9, label:"Fine vita e cure palliative",
+    short:"Fine vita", ambito:"Trasversale", color:"#6b3fa0",
+    tasks:[
+      "Pianificazione condivisa delle cure (PCC)",
+      "Comunicazione con paziente e famigliari",
+      "Gestione sintomi in fase terminale",
+      "Limitazione trattamenti (DNAR, LSMT)",
+      "Attivazione consulenza palliativista",
+      "Documentazione del decesso",
+      "Supporto alle famiglie nel lutto",
+      "Valutazione etica / comitato etico"
+    ]
+  }
+];
+
+const AMBITO_CLASS = { Amministrativo:'tag-admin', Clinico:'tag-med', Trasversale:'tag-cross' };
+const DOT_COLORS   = { Amministrativo:'#3b82f6', Clinico:'#4ade80', Trasversale:'#a78bfa' };
+
+// state
+let activeTask = null;
+let openSecs   = new Set([]);
+let searchVal  = '';
+
+const totalTasks = SECTIONS.reduce((a,s)=>a+s.tasks.length,0);
+
+// ── SIDEBAR ───────────────────────────────────────────────
+function buildSidebar(filter='') {
+  const nav = document.getElementById('sidebar-nav');
+  nav.innerHTML = '';
+  let anyResult = false;
+
+  SECTIONS.forEach(sec => {
+    const fl = filter.toLowerCase();
+    const matched = fl
+      ? sec.tasks.filter(t => t.toLowerCase().includes(fl))
+      : sec.tasks;
+
+    if (fl && matched.length === 0) return;
+    anyResult = true;
+
+    const grp = document.createElement('div');
+    grp.className = 'sec-group';
+
+    const isOpen = openSecs.has(sec.id) || !!fl;
+    const btn = document.createElement('button');
+    btn.className = 'sec-btn' + (isOpen ? ' open' : '');
+    btn.innerHTML = `
+      <span class="dot" style="background:${DOT_COLORS[sec.ambito]}"></span>
+      <span class="sec-label">${sec.id}. ${sec.short}</span>
+      <span class="arrow">▶</span>`;
+    btn.onclick = () => {
+      if (openSecs.has(sec.id)) openSecs.delete(sec.id);
+      else openSecs.add(sec.id);
+      buildSidebar(searchVal);
+    };
+    grp.appendChild(btn);
+
+    const list = document.createElement('div');
+    list.className = 'task-list' + (isOpen ? ' open' : '');
+
+    matched.forEach((task, localIdx) => {
+      const globalIdx = sec.tasks.indexOf(task);
+      const tb = document.createElement('button');
+      const isActive = activeTask && activeTask.sec === sec.id && activeTask.idx === globalIdx;
+      tb.className = 'task-btn' + (isActive ? ' active' : '');
+
+      const label = fl
+        ? task.replace(new RegExp(`(${escapeRe(fl)})`, 'gi'), '<mark>$1</mark>')
+        : task;
+
+      tb.innerHTML = `<span class="task-num">${sec.id}.${globalIdx+1}</span><span>${label}</span>`;
+      tb.onclick = () => showTask(sec, globalIdx);
+      list.appendChild(tb);
+    });
+
+    grp.appendChild(list);
+    nav.appendChild(grp);
+  });
+
+  if (!anyResult) {
+    nav.innerHTML = `<div class="no-results">Nessun risultato per<br>"${escapeHtml(filter)}"</div>`;
+  }
+}
+
+function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function handleSearch(val) {
+  searchVal = val;
+  buildSidebar(val);
+}
+
+// ── BREADCRUMB ────────────────────────────────────────────
+function setBreadcrumb(secLabel, taskLabel) {
+  const bcSec  = document.getElementById('bc-section');
+  const bcSep  = document.getElementById('bc-sep2');
+  const bcTask = document.getElementById('bc-task');
+
+  if (secLabel) {
+    bcSec.textContent  = secLabel;
+    bcSec.style.display = '';
+    bcSep.style.display = '';
+    bcTask.textContent = taskLabel || '';
+  } else {
+    bcSec.style.display = 'none';
+    bcSep.style.display = 'none';
+    bcTask.textContent = taskLabel || '';
+  }
+}
+
+// ── HOME ──────────────────────────────────────────────────
+function showHome() {
+  activeTask = null;
+  setBreadcrumb(null, 'Home');
+  buildSidebar(searchVal);
+
+  const content = document.getElementById('content');
+  content.innerHTML = `
+    <div class="home-header">
+      <h1>Manuale operativo percorsi di reparto</h1>
+      <p>Guida ai software gestionali utilizzati durante il ricovero. Seleziona una sezione per esplorare i task e le istruzioni operative.</p>
+    </div>
+    <div class="home-stats">
+      <div class="stat-pill"><strong>${SECTIONS.length}</strong> sezioni tematiche</div>
+      <div class="stat-pill"><strong>${totalTasks}</strong> task documentati</div>
+      <div class="stat-pill"><span class="ambito-tag tag-admin">Amministrativo</span></div>
+      <div class="stat-pill"><span class="ambito-tag tag-med">Clinico</span></div>
+      <div class="stat-pill"><span class="ambito-tag tag-cross">Trasversale</span></div>
+    </div>
+    <div class="home-grid">
+      ${SECTIONS.map(s => `
+        <div class="home-card" onclick="openSection(${s.id})" style="--card-accent:${s.color}">
+          <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${s.color};border-radius:10px 10px 0 0"></div>
+          <div class="card-num">SEZIONE ${s.id}</div>
+          <div class="card-title">${s.label}</div>
+          <div class="card-footer">
+            <span class="card-count">${s.tasks.length} task</span>
+            <span class="ambito-tag ${AMBITO_CLASS[s.ambito]}">${s.ambito}</span>
+          </div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function openSection(id) {
+  openSecs.add(id);
+  buildSidebar(searchVal);
+  // scroll to first task of section
+  const sec = SECTIONS.find(s => s.id === id);
+  if (sec) showTask(sec, 0);
+}
+
+// ── TASK PAGE ─────────────────────────────────────────────
+function showTask(sec, idx) {
+  activeTask = { sec: sec.id, idx };
+  const task = sec.tasks[idx];
+  openSecs.add(sec.id);
+  buildSidebar(searchVal);
+  setBreadcrumb(sec.short, task);
+
+  const prevTask = idx > 0 ? { sec, idx: idx-1 } : getPrevSection(sec);
+  const nextTask = idx < sec.tasks.length-1 ? { sec, idx: idx+1 } : getNextSection(sec);
+
+  document.getElementById('content').innerHTML = `
+    <div class="task-page">
+      <div class="task-header">
+        <h2>${task}</h2>
+        <div class="task-meta">
+          <span class="meta-tag ${AMBITO_CLASS[sec.ambito]}">${sec.ambito}</span>
+          <span class="meta-sec">Sezione ${sec.id}.${idx+1} — ${sec.short}</span>
+        </div>
+      </div>
+      <div class="task-body">
+
+        <h3>Descrizione</h3>
+        <p>Le istruzioni per questo task verranno inserite in questa sezione. Descrivere brevemente l'obiettivo dell'operazione e il contesto in cui viene eseguita.</p>
+
+        <h3>Procedura passo per passo</h3>
+        <ol>
+          <li>Istruzione 1 — da compilare</li>
+          <li>Istruzione 2 — da compilare</li>
+          <li>Istruzione 3 — da compilare</li>
+        </ol>
+
+        <div class="screenshot-slot">
+          <div class="slot-icon">🖼</div>
+          <div class="slot-label">screenshot_01.png — da inserire</div>
+        </div>
+
+        <h3>Note operative</h3>
+        <div class="note-box">
+          <strong>Nota:</strong> Annotazioni e avvertenze operative verranno inserite qui. In caso di difficoltà tecnica contattare il referente informatico di reparto.
+        </div>
+
+        <div class="screenshot-slot">
+          <div class="slot-icon">🖼</div>
+          <div class="slot-label">screenshot_02.png — da inserire</div>
+        </div>
+
+        <div class="empty-state">
+          <div class="empty-icon">✏️</div>
+          <p>Contenuto in fase di redazione. Inserire le istruzioni complete nel documento Notion e aggiornare questo file.</p>
+        </div>
+
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:36px;padding-top:20px;border-top:1px solid var(--border);">
+        ${prevTask ? `<button onclick="showTask(SECTIONS.find(s=>s.id===${prevTask.sec.id}),${prevTask.idx})" style="padding:8px 14px;font-size:12px;font-family:'IBM Plex Sans',sans-serif;background:#fff;border:1px solid var(--border);border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:5px;color:var(--text-muted);transition:border-color .15s" onmouseover="this.style.borderColor='#aaa'" onmouseout="this.style.borderColor='var(--border)'">← Precedente</button>` : ''}
+        <button onclick="showHome()" style="padding:8px 14px;font-size:12px;font-family:'IBM Plex Sans',sans-serif;background:#fff;border:1px solid var(--border);border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:5px;color:var(--text-muted);transition:border-color .15s" onmouseover="this.style.borderColor='#aaa'" onmouseout="this.style.borderColor='var(--border)'">⌂ Home</button>
+        ${nextTask ? `<button onclick="showTask(SECTIONS.find(s=>s.id===${nextTask.sec.id}),${nextTask.idx})" style="padding:8px 14px;font-size:12px;font-family:'IBM Plex Sans',sans-serif;background:#fff;border:1px solid var(--border);border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:5px;color:var(--text-muted);margin-left:auto;transition:border-color .15s" onmouseover="this.style.borderColor='#aaa'" onmouseout="this.style.borderColor='var(--border)'">Successivo →</button>` : ''}
+      </div>
+    </div>`;
+}
+
+function getPrevSection(sec) {
+  const idx = SECTIONS.findIndex(s => s.id === sec.id);
+  if (idx <= 0) return null;
+  const prev = SECTIONS[idx-1];
+  return { sec: prev, idx: prev.tasks.length-1 };
+}
+
+function getNextSection(sec) {
+  const idx = SECTIONS.findIndex(s => s.id === sec.id);
+  if (idx >= SECTIONS.length-1) return null;
+  return { sec: SECTIONS[idx+1], idx: 0 };
+}
+
+// ── INIT ──────────────────────────────────────────────────
+buildSidebar();
+showHome();
+</script>
+</body>
+</html>
